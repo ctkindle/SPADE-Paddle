@@ -5,7 +5,7 @@ from PIL import Image, ImageOps
 import random
 import matplotlib.pyplot as plt
 
-from init import OPT
+from model.init import OPT
 
 # 处理图片数据：裁切、水平翻转、调整图片数据形状、归一化数据
 def data_transform(img, resize_w, resize_h, load_size=286, pos=[0, 0, 256, 256], flip=True, is_image=True):
@@ -65,10 +65,10 @@ class COCODateset(Dataset):
         lab = data_transform(lab, resize_w, resize_h, load_size=self.opt.load_size, 
             pos=[left, top, left + self.opt.crop_size, top + self.opt.crop_size], flip=flip, is_image=False)
 
-        # # 将label中的背景类别从255改为182
-        # mask = lab == 255
-        # nc = opt.label_nc + 1 if opt.contain_dontcare_label else opt.label_nc
-        # lab[mask] = nc - 1
+        # 将label中的背景类别从255改为182
+        mask = lab == 255
+        nc = self.opt.label_nc + 1 if self.opt.contain_dontcare_label else self.opt.label_nc
+        lab[mask] = nc - 1
         
         return img, ins, lab
 

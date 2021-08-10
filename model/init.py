@@ -1,19 +1,11 @@
 # set up global parameters
-# 修改了syncbatchnorm为batchnorm
-# 修改了 dataroot
-# batchSize 设为 2 (显存占用【bs=1:8786M ;bs=2:13286M ;bs=3:】1bs == 4500M)
-# 调整 vgg loss lambda 为 0.2
-
 class OPT():
     def __init__(self):
         super(OPT, self).__init__()
         self.D_steps_per_G=1
         self.aspect_ratio=1.0
-        # self.batchSize=4
-        self.batchSize=8
-        # self.batchSize=12
+        self.batchSize=1
         self.beta1=0.0
-        # self.beta2=0.9
         self.beta2=0.999
         self.cache_filelist_read=True
         self.cache_filelist_write=True
@@ -23,10 +15,6 @@ class OPT():
         self.contain_dontcare_label=True
         self.continue_train=False
         self.crop_size=256
-        # self.dataroot='./datasets/cityscapes/'
-        # self.dataroot='/home/aistudio/data/coco_stuff/'
-        # self.dataroot='/home/aistudio/coco_stuff/'
-        # self.dataroot='/home/aistudio/data/coco_stuff/'
         self.dataset_mode='coco'
         self.debug=False
         self.display_freq=100
@@ -40,8 +28,6 @@ class OPT():
         self.lambda_feat=10.0
         self.lambda_kld=0.05
         self.lambda_mask=100.0
-        # self.lambda_vgg=10.0
-        # self.lambda_vgg=0.2
         self.lambda_vgg=0.4
         self.load_from_opt_file=False
         self.load_size=286
@@ -51,12 +37,14 @@ class OPT():
         self.nThreads=0
         self.n_layers_D=4
         self.name='label2coco'
-        self.ndf=64
+#         self.ndf=64
+        self.ndf=8
         self.nef=16
         self.netD='multiscale'
         self.netD_subarch='n_layer'
         self.netG='spade'
-        self.ngf=64
+#         self.ngf=64
+        self.ngf=8
         self.niter=50
         self.niter_decay=0
         self.no_TTUR=False
@@ -65,11 +53,12 @@ class OPT():
         self.no_html=False
         self.no_instance=False
         self.no_pairing_check=False
-        self.no_vgg_loss=False
+#         self.no_vgg_loss=False
+        self.no_vgg_loss=True
         self.norm_D='spectralinstance'
         self.norm_E='spectralinstance'
-        self.norm_G='spectralspadesyncbatch3x3'
-        # self.norm_G='spectralspadebatch3x3'
+#         self.norm_G='spectralspadesyncbatch3x3'
+        self.norm_G='spectralspadebatch3x3'
         self.num_D=2
         self.num_upsampling_layers='normal'
         self.optimizer='adam'
@@ -82,15 +71,13 @@ class OPT():
         self.semantic_nc=184
         self.serial_batches=False
         self.tf_log=False
-        # self.use_vae=False
         self.use_vae=True
         self.which_epoch='latest'
         self.z_dim=256
-        self.dataroot = '/root/paddlejob/workspace/train_data/datasets/'
-        self.datasetdir = 'data96023/'
-        self.vggwpath = '/root/paddlejob/workspace/train_data/datasets/data96023/vgg19pretrain.pdparams'
-        # self.datasetdir = 'data96377/'
-        # self.vggwpath = '/root/paddlejob/workspace/train_data/datasets/data96377/vgg19pretrain.pdparams'
-        self.output = '/root/paddlejob/workspace/output/output/'
-        self.lastoutput = '/root/paddlejob/workspace/train_data/datasets/data102130/81728.tar'
-        # self.lastoutput = '/root/paddlejob/workspace/train_data/datasets/data99492/78599.tar'
+        self.dataroot = 'dataset/'
+        self.datasetdir = ''
+        self.vggwpath = 'vgg/vgg19pretrain.pdparams'
+        self.output = 'output/'
+        self.lastoutput = 'output/'
+
+        

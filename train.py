@@ -11,13 +11,13 @@ import tarfile
 import zipfile
 import shutil
 
-from init import OPT
-from data import COCODateset, DataLoader
-from discriminator import MultiscaleDiscriminator
-from generator import SPADEGenerator
-from vae_encoder import VAE_Encoder
-from vgg19 import VGG19, center_crop
-from util import data_onehot_pro, save_pics
+from model.init import OPT
+from model.data import COCODateset, DataLoader
+from model.discriminator import MultiscaleDiscriminator
+from model.generator import SPADEGenerator
+from model.vae_encoder import VAE_Encoder
+from model.vgg19 import VGG19, center_crop
+from model.util import data_onehot_pro, save_pics
 
 def train(opt, epoch_num=1, show_interval=1, restart=False):
     time.sleep(1)
@@ -45,11 +45,8 @@ def train(opt, epoch_num=1, show_interval=1, restart=False):
 
     # 设置数据集
     cocods = COCODateset(opt)
-    # dataloader = DataLoader(cocods, shuffle=True, batch_size=opt.batchSize, drop_last=True, num_workers=1, use_shared_memory=False)
     batchsamp = DistributedBatchSampler(cocods, batch_size=opt.batchSize, shuffle=True, drop_last=True)
     dataloader = DataLoader(cocods, batch_sampler=batchsamp, num_workers=4)
-    # dataloader = DataLoader(cocods, shuffle=True, batch_size=opt.batchSize, drop_last=True, num_workers=4)
-    
 
     # 初始化模型
     D = MultiscaleDiscriminator(opt)
@@ -58,20 +55,15 @@ def train(opt, epoch_num=1, show_interval=1, restart=False):
     G = paddle.DataParallel(G)
     D.train()
     G.train()
-    # D.apply(weights_init)
-    # G.apply(weights_init)
     if opt.use_vae:
         E = VAE_Encoder(opt)
         E = paddle.DataParallel(E)
         E.train()
-        # E.apply(weights_init)
     if not opt.no_vgg_loss:
         vgg19 = VGG19()
         vgg_state_dict = paddle.load(opt.vggwpath)
         vgg19.set_state_dict(vgg_state_dict)
         l1loss = nn.loss.L1Loss()
-    # print(vgg19._conv_block_1.parameters())
-    # return
 
     # 设置优化器、学习率
     if opt.no_TTUR:
@@ -99,38 +91,29 @@ def train(opt, epoch_num=1, show_interval=1, restart=False):
         e_statedict_model = paddle.load(os.path.join(last_output_path, "model/n_e.pdparams"))
         E.set_state_dict(e_statedict_model)
 
-        # d_statedict_opt = paddle.load(os.path.join(last_output_path, "model/n_d.pdopt"))
-        # opt_d.set_state_dict(d_statedict_opt)
+        d_statedict_opt = paddle.load(os.path.join(last_output_path, "model/n_d.pdopt"))
+        opt_d.set_state_dict(d_statedict_opt)
 
-        # g_statedict_opt = paddle.load(os.path.join(last_output_path, "model/n_g.pdopt"))
-        # opt_g.set_state_dict(g_statedict_opt)
-
-        # e_statedict_opt = paddle.load(os.path.join(last_output_path, "model/n_e.pdopt"))
-        # opt_e.set_state_dict(e_statedict_opt)
+        g_statedict_opt = paddle.load(os.path.join(last_output_path, "model/n_g.pdopt"))
+        opt_g.set_state_dict(g_statedict_opt)
 
     for epoch in range(current_epoch + 1, current_epoch + epoch_num + 1):
         # print('开始第['+str(epoch)+']轮训练...')
         start = time.time()
         for step, data in enumerate(dataloader):
-            # if step >= 10:
-            #     break
+            if step >= 1:
+                break
             
-            # image, label_inst, label = data
             image, inst, label = data
 
             # train G
             if opt.use_vae:
-                # mu, logvar = E(paddle.ones([opt.batchSize, 3, opt.crop_size, opt.crop_size]))
                 mu, logvar = E(image.detach())
                 std = paddle.exp(0.5 * logvar)
                 eps = paddle.to_tensor(np.random.normal(0, 1, (std.shape[0], std.shape[1])).astype('float32'))
-                # eps = paddle.ones([std.shape[0], std.shape[1]]) / 278000.
                 z = eps * std + mu
-                # print(z, mu, logvar)
-                # return
                 g_vaeloss = -0.5 * paddle.sum(1. + logvar - paddle.pow(mu, 2) - paddle.exp(logvar))
                 g_vaeloss *= opt.lambda_kld
-                # print(g_vaeloss)
 
             one_hot = data_onehot_pro(inst, label, opt)
             fake_img = G(one_hot, z if opt.use_vae else None)
@@ -138,10 +121,6 @@ def train(opt, epoch_num=1, show_interval=1, restart=False):
             real_data = paddle.concat((one_hot, image), 1)
             fake_and_real_data = paddle.concat((fake_data, real_data), 0)
             pred = D(fake_and_real_data)
-            # # 关闭真图片 tensor 的梯度计算
-            # for i in range(len(pred)):
-            #     for j in range(len(pred[i])):
-            #         pred[i][j][1:].stop_gradient = True
             
             g_ganloss = 0.
             for i in range(len(pred)):
@@ -168,9 +147,6 @@ def train(opt, epoch_num=1, show_interval=1, restart=False):
             
             if opt.use_vae:
                 g_loss = g_ganloss + g_featloss + g_vggloss + g_vaeloss
-                # opt_e.clear_grad()
-                # g_loss.backward(retain_graph=True)
-                # opt_e.step()
             else:
                 g_loss = g_ganloss + g_featloss + g_vggloss
             opt_g.clear_grad()
@@ -179,11 +155,9 @@ def train(opt, epoch_num=1, show_interval=1, restart=False):
             
             # train D
             if opt.use_vae:
-                # mu, logvar = E(paddle.ones([opt.batchSize, 3, opt.crop_size, opt.crop_size]))
                 mu, logvar = E(image.detach())
                 std = paddle.exp(0.5 * logvar)
                 eps = paddle.to_tensor(np.random.normal(0, 1, (std.shape[0], std.shape[1])).astype('float32'))
-                # eps = paddle.ones([std.shape[0], std.shape[1]]) / 278000.
                 z = eps * std + mu
 
             fake_img = G(one_hot, z if opt.use_vae else None)
@@ -236,17 +210,6 @@ def train(opt, epoch_num=1, show_interval=1, restart=False):
                 # plt.imshow(img_show3)
                 # plt.show()
 
-            # # 定时存盘
-            # if step %  1000 == 0 and step != 0:
-            #     paddle.save(D.state_dict(), output_path+"model/"+str(epoch)+"_d.pdparams")
-            #     paddle.save(opt_d.state_dict(), output_path+"model/"+str(epoch)+ "_d.pdopt")
-            #     paddle.save(G.state_dict(), output_path+"model/"+str(epoch)+"_g.pdparams")
-            #     paddle.save(opt_g.state_dict(), output_path+"model/"+str(epoch)+ "_g.pdopt")
-            #     if opt.use_vae:
-            #         paddle.save(E.state_dict(), output_path+"model/"+str(epoch)+"_e.pdparams")
-            #         paddle.save(opt_e.state_dict(), output_path+"model/"+str(epoch)+ "_e.pdopt")
-            #     print('第['+str(epoch)+']轮，第['+str(step)+']步模型保存。')
-
             # 写log
             log_current_step = np.array([[
                 g_ganloss.numpy()[0], \
@@ -259,33 +222,31 @@ def train(opt, epoch_num=1, show_interval=1, restart=False):
             ]])
             log = np.concatenate((log, log_current_step), axis=0)
 
-
-        # 存储模型
-        if epoch % 1 == 0 and dist.get_rank() == 0:
-            np.save(opt.output+'current_epoch', np.array([epoch]))
-            np.save(opt.output+'log', log)
-            paddle.save(D.state_dict(), opt.output+"model/n_d.pdparams")
-            paddle.save(G.state_dict(), opt.output+"model/n_g.pdparams")
-            if opt.use_vae:
-                paddle.save(E.state_dict(), opt.output+"model/n_e.pdparams")
-            paddle.save(opt_g.state_dict(), opt.output+"model/n_g.pdopt")
-            paddle.save(opt_d.state_dict(), opt.output+"model/n_d.pdopt")
-            end = time.time()
-            seconds = end - start
-            m, s = divmod(seconds, 60)
-            h, m = divmod(m, 60)
-            start_fmt = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(start))
-            end_fmt = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end))
-            print('第['+str(epoch)+']轮模型保存完成。用时[%02d:%02d:%02d]' % (h, m, s), 
-                '开始时间：', start_fmt, '结束时间：', end_fmt)
+    time.sleep(5)
+    # 存储模型
+    if dist.get_rank() == 0:
+        np.save(opt.output+'current_epoch', np.array([epoch]))
+        np.save(opt.output+'log', log)
+        paddle.save(D.state_dict(), opt.output+"model/n_d.pdparams")
+        paddle.save(G.state_dict(), opt.output+"model/n_g.pdparams")
+        if opt.use_vae:
+            paddle.save(E.state_dict(), opt.output+"model/n_e.pdparams")
+        paddle.save(opt_g.state_dict(), opt.output+"model/n_g.pdopt")
+        paddle.save(opt_d.state_dict(), opt.output+"model/n_d.pdopt")
+        end = time.time()
+        seconds = end - start
+        m, s = divmod(seconds, 60)
+        h, m = divmod(m, 60)
+        start_fmt = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(start))
+        end_fmt = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end))
+        print('第['+str(epoch)+']轮模型保存完成。用时[%02d:%02d:%02d]' % (h, m, s), 
+            '开始时间：', start_fmt, '结束时间：', end_fmt)
     time.sleep(5)
 
 if __name__ == '__main__':
     opt = OPT()
-    # dist.spawn(train, args=(opt, vggwpath, lastoutput, output, 1, opt.batchSize, 1, False))
-    # train(opt, epoch_num = 1, show_interval=1, restart=True)
-    # train(opt, epoch_num = 1, show_interval=20, restart=True)
     
-    train(opt, epoch_num = 1, show_interval=10, restart=False)
-    # train(opt, epoch_num = 10, show_interval=100, restart=False)
+    train(opt, epoch_num = 1, show_interval=1, restart=True)
+#     train(opt, epoch_num = 1, show_interval=1, restart=False)
+#     train(opt, epoch_num = 10, show_interval=100, restart=False)
 
