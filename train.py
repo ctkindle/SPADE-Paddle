@@ -104,7 +104,7 @@ def train(opt, epoch_num=1, show_interval=1, restart=False):
             if step >= 1:
                 break
             
-            image, inst, label = data
+            image, inst, label, _ = data
 
             # train G
             if opt.use_vae:
@@ -195,20 +195,20 @@ def train(opt, epoch_num=1, show_interval=1, restart=False):
                 if dist.get_rank() == 0: # 只在主进程保存图片
                     save_pics([fake_img, inst, image], file_name=str(epoch)+'_'+str(step), save_path=os.path.join(opt.output, 'pics'))
                 
-                # img_show1 = fake_img.numpy()[0].reshape((3, 256, 256)).transpose((1,2,0))
-                # img_show1 = (img_show1 + 1.) / 2.
-                # img_show2 = inst.numpy()[0].reshape((256, 256))
-                # img_show2 = (img_show2 + 1.) / 2.
-                # img_show3 = image.numpy()[0].reshape((3, 256, 256)).transpose((1,2,0))
-                # img_show3 = (img_show3 + 1.) / 2.
-                # plt.figure(figsize=(12,4),dpi=80)
-                # plt.subplot(1, 3, 1)
-                # plt.imshow(img_show1)
-                # plt.subplot(1, 3, 2)
-                # plt.imshow(img_show2)
-                # plt.subplot(1, 3, 3)
-                # plt.imshow(img_show3)
-                # plt.show()
+#                 img_show1 = fake_img.numpy()[0].reshape((3, 256, 256)).transpose((1,2,0))
+#                 img_show1 = (img_show1 + 1.) / 2.
+#                 img_show2 = inst.numpy()[0].reshape((256, 256))
+#                 img_show2 = img_show2.astype('uint8') * 20
+#                 img_show3 = image.numpy()[0].reshape((3, 256, 256)).transpose((1,2,0))
+#                 img_show3 = (img_show3 + 1.) / 2.
+#                 plt.figure(figsize=(12,4),dpi=80)
+#                 plt.subplot(1, 3, 1)
+#                 plt.imshow(img_show1)
+#                 plt.subplot(1, 3, 2)
+#                 plt.imshow(img_show2)
+#                 plt.subplot(1, 3, 3)
+#                 plt.imshow(img_show3)
+#                 plt.show()
 
             # 写log
             log_current_step = np.array([[

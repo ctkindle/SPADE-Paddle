@@ -70,7 +70,7 @@ class COCODateset(Dataset):
         nc = self.opt.label_nc + 1 if self.opt.contain_dontcare_label else self.opt.label_nc
         lab[mask] = nc - 1
         
-        return img, ins, lab
+        return img, ins, lab, self.inst_list[idx]
 
     def __len__(self):
         return len(self.inst_list)
