@@ -5,7 +5,7 @@
 
 下图为coco2017数据集验证集前10张图片（非刻意挑选）生成效果对比。左一列为复现效果，左二列为pytorch模型生成效果，左三列为数据集原图，右边三列为对应的deeplabv2模型（原论文采用：[https://github.com/kazuto1011/deeplab-pytorch](https://github.com/kazuto1011/deeplab-pytorch) ）的语义分割图。验证集前100张图片（非刻意挑选）生成效果对比图存放在 result 文件夹下。
 
-![Image text](https://raw.githubusercontent.com/ctkindle/SPADE-Paddle/main/result/1.jpg)
+![复现效果对比图](https://raw.githubusercontent.com/ctkindle/SPADE-Paddle/main/result/1.jpg)
 
 将两个模型生成的图片通过分割模型测试的数据如下：
 
