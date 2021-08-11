@@ -27,6 +27,8 @@
 
 ### 2. 执行训练
 
+模型使用 Paddle 实现，需要 Paddle2.1 以上版本。安装参考：[https://www.paddlepaddle.org.cn/](https://www.paddlepaddle.org.cn/)
+
 所有的全局参数、超参都写到了 model/init.py 脚本里的 OPT 类里，可使用默认值或根据需求修改。训练执行以下命令调用训练：
 
 `python train.py`
