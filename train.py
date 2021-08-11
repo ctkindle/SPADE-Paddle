@@ -101,9 +101,6 @@ def train(opt, epoch_num=1, show_interval=1, restart=False):
         # print('开始第['+str(epoch)+']轮训练...')
         start = time.time()
         for step, data in enumerate(dataloader):
-            if step >= 1:
-                break
-            
             image, inst, label, _ = data
 
             # train G

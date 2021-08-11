@@ -37,14 +37,12 @@ class OPT():
         self.nThreads=0
         self.n_layers_D=4
         self.name='label2coco'
-#         self.ndf=64
-        self.ndf=8
+        self.ndf=64
         self.nef=16
         self.netD='multiscale'
         self.netD_subarch='n_layer'
         self.netG='spade'
-#         self.ngf=64
-        self.ngf=8
+        self.ngf=64
         self.niter=50
         self.niter_decay=0
         self.no_TTUR=False
