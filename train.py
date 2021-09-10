@@ -17,7 +17,7 @@ from model.discriminator import MultiscaleDiscriminator
 from model.generator import SPADEGenerator
 from model.vae_encoder import VAE_Encoder
 from model.vgg19 import VGG19, center_crop
-from model.util import data_onehot_pro, save_pics
+from utils.util import data_onehot_pro, save_pics
 
 def train(opt, epoch_num=1, show_interval=1, restart=False):
     time.sleep(1)

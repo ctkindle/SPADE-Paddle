@@ -4,7 +4,7 @@ from model.generator import SPADEGenerator
 from model.vae_encoder import VAE_Encoder
 from model.discriminator import MultiscaleDiscriminator
 from model.vgg19 import VGG19, center_crop
-from model.util import data_onehot_pro, save_pics
+from utils.util import data_onehot_pro, save_pics
 
 import numpy as np
 # import matplotlib.pyplot as plt

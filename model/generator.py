@@ -6,7 +6,7 @@ import numpy as np
 import re
 
 from config.init import OPT
-from model.util import build_norm_layer, spn_conv_init_weight, spn_conv_init_bias, spectral_norm, simam
+from utils.util import build_norm_layer, spn_conv_init_weight, spn_conv_init_bias, spectral_norm, simam
 
 class SPADE(nn.Layer):
     def __init__(self, config_text, norm_nc, label_nc):

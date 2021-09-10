@@ -3,7 +3,7 @@ import paddle.nn as nn
 import numpy as np
 import copy
 from config.init import OPT
-from model.util import build_norm_layer, spn_conv_init_weight, spn_conv_init_bias, spectral_norm, simam
+from utils.util import build_norm_layer, spn_conv_init_weight, spn_conv_init_bias, spectral_norm, simam
 
 class NLayersDiscriminator(nn.Layer):
     def __init__(self, opt):
