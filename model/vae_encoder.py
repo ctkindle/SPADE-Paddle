@@ -3,7 +3,7 @@ import paddle.nn as nn
 
 import numpy as np
 
-from model.init import OPT
+from config.init import OPT
 from model.util import build_norm_layer, spn_conv_init_weight, spn_conv_init_bias, spectral_norm
 
 class VAE_Encoder(nn.Layer):

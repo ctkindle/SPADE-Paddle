@@ -3,7 +3,7 @@ import tarfile
 import os
 import shutil
 
-from model.init import OPT
+from config.init import OPT
 
 def build_dataset(dataroot, datasetdir, datadir='coco_stuff/'):
     # coco = zipfile.ZipFile(dataroot+datasetdir+'coco_stuff.zip')

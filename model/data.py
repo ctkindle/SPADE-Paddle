@@ -5,7 +5,7 @@ from PIL import Image, ImageOps
 import random
 import matplotlib.pyplot as plt
 
-from model.init import OPT
+from config.init import OPT
 
 # 处理图片数据：裁切、水平翻转、调整图片数据形状、归一化数据
 def data_transform(img, resize_w, resize_h, load_size=286, pos=[0, 0, 256, 256], flip=True, is_image=True):

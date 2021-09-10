@@ -1,4 +1,4 @@
-from model.init import OPT
+from config.init import OPT
 from model.data import COCODateset, DataLoader
 from model.generator import SPADEGenerator
 from model.vae_encoder import VAE_Encoder

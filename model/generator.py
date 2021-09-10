@@ -5,7 +5,7 @@ import paddle.nn.functional as F
 import numpy as np
 import re
 
-from model.init import OPT
+from config.init import OPT
 from model.util import build_norm_layer, spn_conv_init_weight, spn_conv_init_bias, spectral_norm, simam
 
 class SPADE(nn.Layer):

@@ -11,7 +11,7 @@ import tarfile
 import zipfile
 import shutil
 
-from model.init import OPT
+from config.init import OPT
 from model.data import COCODateset, DataLoader
 from model.discriminator import MultiscaleDiscriminator
 from model.generator import SPADEGenerator
