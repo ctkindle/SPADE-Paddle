@@ -7,8 +7,6 @@ from model.vgg19 import VGG19, center_crop
 from utils.util import data_onehot_pro, save_pics
 
 import numpy as np
-# import matplotlib.pyplot as plt
-# %matplotlib inline
 import time
 import os
 
@@ -45,8 +43,6 @@ def infer(opt, epoch_num=1, restart=False, show_interval=1, save_interval=1):
     # 读取保存的模型权重、优化器参数
     if not restart:
         print('读取存储的模型权重、优化器参数...')
-#         d_statedict_model = paddle.load(os.path.join(last_output_path, "model/n_d.pdparams"))
-#         D.set_state_dict(d_statedict_model)
 
         g_statedict_model = paddle.load(os.path.join(last_output_path, "model/n_g.pdparams"))
         G.set_state_dict(g_statedict_model)
@@ -54,13 +50,13 @@ def infer(opt, epoch_num=1, restart=False, show_interval=1, save_interval=1):
         if opt.use_vae:
             e_statedict_model = paddle.load(os.path.join(last_output_path, "model/n_e.pdparams"))
             E.set_state_dict(e_statedict_model)
-
+            
+    # 开始用验证数据集进行验证
     for epoch in range(current_epoch + 1, current_epoch + epoch_num + 1):
         start = time.time()
         for step, data in enumerate(dataloader):
             image, inst, label, fname = data
 
-            # train G
             if opt.use_vae:
                 mu, logvar = E(image.detach())
                 std = paddle.exp(0.5 * logvar)
@@ -70,7 +66,7 @@ def infer(opt, epoch_num=1, restart=False, show_interval=1, save_interval=1):
             one_hot = data_onehot_pro(inst, label, opt)
             fake_img = G(one_hot, z if opt.use_vae else None)
 
-            # save img
+            # 存储生成的图片
             if step % save_interval == 0:
                 save_pics([fake_img, inst, image], file_name=fname[0].replace('.png', ''), save_path=os.path.join(opt.output, 'pics'))
                 

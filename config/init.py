@@ -1,4 +1,4 @@
-# set up global parameters
+# 设置全局训练参数、验证参数、预测参数
 class OPT():
     def __init__(self):
         super(OPT, self).__init__()
@@ -75,5 +75,8 @@ class OPT():
         self.vggwpath = 'vgg/vgg19pretrain.pdparams'
         self.output = 'output/'
         self.lastoutput = 'output/'
+        self.predict_inst = 'prediction/test.png'
+        self.predict_img = 'prediction/test.jpg'
+        self.predict_result = 'prediction/result.jpg'
 
         

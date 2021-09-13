@@ -103,7 +103,7 @@ def train(opt, epoch_num=1, show_interval=1, restart=False):
         for step, data in enumerate(dataloader):
             image, inst, label, _ = data
 
-            # train G
+            # 训练生成器G
             if opt.use_vae:
                 mu, logvar = E(image.detach())
                 std = paddle.exp(0.5 * logvar)
@@ -150,7 +150,7 @@ def train(opt, epoch_num=1, show_interval=1, restart=False):
             g_loss.backward()
             opt_g.step()
             
-            # train D
+            # 训练判别器D
             if opt.use_vae:
                 mu, logvar = E(image.detach())
                 std = paddle.exp(0.5 * logvar)
@@ -181,7 +181,7 @@ def train(opt, epoch_num=1, show_interval=1, restart=False):
             d_loss.backward()
             opt_d.step()
 
-            # show img
+            # 打印训练日志
             if step % show_interval == 0:
             # if epoch % 1 == 0:
                 print('epoch:', epoch, 'step:', step, 'g_loss_gan:', g_ganloss.numpy(), 'g_loss_feat:', g_featloss.numpy(), \
@@ -192,22 +192,7 @@ def train(opt, epoch_num=1, show_interval=1, restart=False):
                 if dist.get_rank() == 0: # 只在主进程保存图片
                     save_pics([fake_img, inst, image], file_name=str(epoch)+'_'+str(step), save_path=os.path.join(opt.output, 'pics'))
                 
-#                 img_show1 = fake_img.numpy()[0].reshape((3, 256, 256)).transpose((1,2,0))
-#                 img_show1 = (img_show1 + 1.) / 2.
-#                 img_show2 = inst.numpy()[0].reshape((256, 256))
-#                 img_show2 = img_show2.astype('uint8') * 20
-#                 img_show3 = image.numpy()[0].reshape((3, 256, 256)).transpose((1,2,0))
-#                 img_show3 = (img_show3 + 1.) / 2.
-#                 plt.figure(figsize=(12,4),dpi=80)
-#                 plt.subplot(1, 3, 1)
-#                 plt.imshow(img_show1)
-#                 plt.subplot(1, 3, 2)
-#                 plt.imshow(img_show2)
-#                 plt.subplot(1, 3, 3)
-#                 plt.imshow(img_show3)
-#                 plt.show()
-
-            # 写log
+            # 将训练日志写入log文件
             log_current_step = np.array([[
                 g_ganloss.numpy()[0], \
                 g_featloss.numpy()[0], \
@@ -224,12 +209,12 @@ def train(opt, epoch_num=1, show_interval=1, restart=False):
     if dist.get_rank() == 0:
         np.save(opt.output+'current_epoch', np.array([epoch]))
         np.save(opt.output+'log', log)
-        paddle.save(D.state_dict(), opt.output+"model/n_d.pdparams")
-        paddle.save(G.state_dict(), opt.output+"model/n_g.pdparams")
+        paddle.save(D.state_dict(), os.path.join(opt.output, "model/n_d.pdparams"))
+        paddle.save(G.state_dict(), os.path.join(opt.output, "model/n_g.pdparams"))
         if opt.use_vae:
-            paddle.save(E.state_dict(), opt.output+"model/n_e.pdparams")
-        paddle.save(opt_g.state_dict(), opt.output+"model/n_g.pdopt")
-        paddle.save(opt_d.state_dict(), opt.output+"model/n_d.pdopt")
+            paddle.save(E.state_dict(), os.path.join(opt.output, "model/n_e.pdparams"))
+        paddle.save(opt_g.state_dict(), os.path.join(opt.output, "model/n_g.pdopt"))
+        paddle.save(opt_d.state_dict(), os.path.join(opt.output, "model/n_d.pdopt"))
         end = time.time()
         seconds = end - start
         m, s = divmod(seconds, 60)

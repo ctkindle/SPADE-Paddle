@@ -1,3 +1,18 @@
+#encoding=utf8
+# Copyright (c) 2021 PaddlePaddle Authors. All Rights Reserved.
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import paddle
 import paddle.nn as nn
 
@@ -6,6 +21,7 @@ import numpy as np
 from config.init import OPT
 from utils.util import build_norm_layer, spn_conv_init_weight, spn_conv_init_bias, spectral_norm
 
+# 定义VAE编码器，提取图片风格
 class VAE_Encoder(nn.Layer):
     def __init__(self, opt):
         super(VAE_Encoder, self).__init__()
@@ -14,7 +30,6 @@ class VAE_Encoder(nn.Layer):
         pw = int(np.ceil((kw - 1.0) / 2))
         ndf = opt.ngf
 
-        # SpectralNorm = build_norm_layer('spectral')
         InstanceNorm = build_norm_layer('instance')
         model = [
             spectral_norm(nn.Conv2D(3, ndf, kw, 2, pw,
@@ -29,21 +44,18 @@ class VAE_Encoder(nn.Layer):
                     bias_attr=spn_conv_init_bias)),
             InstanceNorm(ndf * 2),
 
-            # nn.LeakyReLU(.2),
             nn.GELU(),
             spectral_norm(nn.Conv2D(ndf * 2, ndf * 4, kw, 2, pw,
                     weight_attr=spn_conv_init_weight,
                     bias_attr=spn_conv_init_bias)),
             InstanceNorm(ndf * 4),
 
-            # nn.LeakyReLU(.2),
             nn.GELU(),
             spectral_norm(nn.Conv2D(ndf * 4, ndf * 8, kw, 2, pw,
                     weight_attr=spn_conv_init_weight,
                     bias_attr=spn_conv_init_bias)),
             InstanceNorm(ndf * 8),
 
-            # nn.LeakyReLU(.2),
             nn.GELU(),
             spectral_norm(nn.Conv2D(ndf * 8, ndf * 8, kw, 2, pw,
                     weight_attr=spn_conv_init_weight,
@@ -52,14 +64,12 @@ class VAE_Encoder(nn.Layer):
         ]
         if opt.crop_size >= 256:
             model += [
-                # nn.LeakyReLU(.2),
                 nn.GELU(),
                 spectral_norm(nn.Conv2D(ndf * 8, ndf * 8, kw, 2, pw,
                         weight_attr=spn_conv_init_weight,
                         bias_attr=spn_conv_init_bias)),
                 InstanceNorm(ndf * 8),
             ]
-        # model += [nn.LeakyReLU(.2),]
         model += [nn.GELU(),]
 
         self.flatten = nn.Flatten(1, -1)
@@ -70,7 +80,6 @@ class VAE_Encoder(nn.Layer):
         self.model = nn.Sequential(*model)
 
     def forward(self, x):
-        # self.apply(weights_init)
         x = self.model(x)
         
         x = self.flatten(x)
@@ -81,7 +90,6 @@ if __name__ == '__main__':
     opt = OPT()
     opt.batchSize = 1
     ve = VAE_Encoder(opt)
-    # paddle.seed(101)
     x = paddle.ones([opt.batchSize, 3, opt.crop_size, opt.crop_size]) / 2.
     m, v = ve(x)
     print(m.shape, m)

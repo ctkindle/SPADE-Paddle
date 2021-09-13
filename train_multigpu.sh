@@ -1,0 +1,1 @@
+python -m paddle.distributed.launch train.py

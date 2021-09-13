@@ -1,3 +1,18 @@
+#encoding=utf8
+# Copyright (c) 2021 PaddlePaddle Authors. All Rights Reserved.
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import paddle
 import paddle.nn as nn
 import numpy as np
@@ -5,6 +20,7 @@ import copy
 from config.init import OPT
 from utils.util import build_norm_layer, spn_conv_init_weight, spn_conv_init_bias, spectral_norm, simam
 
+# 定义patch gan判别器
 class NLayersDiscriminator(nn.Layer):
     def __init__(self, opt):
         super(NLayersDiscriminator, self).__init__()
@@ -17,14 +33,12 @@ class NLayersDiscriminator(nn.Layer):
 
         layer = nn.Sequential(
             nn.Conv2D(input_nc, nf, kw, 2, padw),
-            # nn.LeakyReLU(0.2)
             nn.GELU()
         )
         self.add_sublayer('block_'+str(layer_count), layer)
         layer_count += 1
 
         feat_size_prev = np.floor((opt.crop_size + padw * 2 - (kw - 2)) / 2).astype('int64')
-        # SpectralNorm = build_norm_layer('spectral')
         InstanceNorm = build_norm_layer('instance')
         for n in range(1, opt.n_layers_D):
             nf_prev = nf
@@ -37,7 +51,6 @@ class NLayersDiscriminator(nn.Layer):
                     weight_attr=spn_conv_init_weight,
                     bias_attr=spn_conv_init_bias)),
                 InstanceNorm(nf),
-                # nn.LeakyReLU(.2)
                 nn.GELU()
             )
             self.add_sublayer('block_'+str(layer_count), layer)
@@ -50,7 +63,6 @@ class NLayersDiscriminator(nn.Layer):
     def forward(self, input):
         output = []
         for layer in self._sub_layers.values():
-            # output.append(layer(input))
             output.append(simam(layer(input)))
             input = output[-1]
 
@@ -63,7 +75,8 @@ class NLayersDiscriminator(nn.Layer):
         if not opt.no_instance:
             input_nc += 1
         return input_nc
-    
+
+# 定义训练使用的多尺度判别器
 class MultiscaleDiscriminator(nn.Layer):
     def __init__(self, opt):
         super(MultiscaleDiscriminator, self).__init__()

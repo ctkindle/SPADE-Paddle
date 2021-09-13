@@ -14,10 +14,6 @@ def data_transform(img, resize_w, resize_h, load_size=286, pos=[0, 0, 256, 256],
     else:
         resized = img.resize((resize_w, resize_h), Image.NEAREST)
     croped = resized.crop((pos[0], pos[1], pos[2], pos[3]))
-    # if is_image:
-    #     croped = img.resize((256, 256), Image.BICUBIC)
-    # else:
-    #     croped = img.resize((256, 256), Image.NEAREST)
     fliped = ImageOps.mirror(croped) if flip else croped
     fliped = np.array(fliped) # transform to numpy array
     expanded = np.expand_dims(fliped, 2) if len(fliped.shape) < 3 else fliped
@@ -32,9 +28,6 @@ def data_transform(img, resize_w, resize_h, load_size=286, pos=[0, 0, 256, 256],
 class COCODateset(Dataset):
     def __init__(self, opt):
         super(COCODateset, self).__init__()
-        # img_dir = opt.dataroot+'train_img/'
-        # _, _, image_list = next(os.walk(img_dir))
-        # self.image_list = np.sort(image_list)
         inst_dir = opt.dataroot+'coco_stuff/train_inst/'
         _, _, inst_list = next(os.walk(inst_dir))
         self.inst_list = np.sort(inst_list)
@@ -54,8 +47,6 @@ class COCODateset(Dataset):
             resize_w, resize_h = int(w * self.opt.load_size / h), self.opt.load_size
         left = random.randint(0, resize_w - self.opt.crop_size)
         top = random.randint(0, resize_h - self.opt.crop_size)
-        # top = random.randint(0, self.opt.load_size - self.opt.crop_size)
-        # left = random.randint(0, self.opt.load_size - self.opt.crop_size)
         flip = True if random.randint(0, 100) > 50 else False
         
         img = data_transform(img, resize_w, resize_h, load_size=self.opt.load_size, 

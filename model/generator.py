@@ -1,3 +1,18 @@
+#encoding=utf8
+# Copyright (c) 2021 PaddlePaddle Authors. All Rights Reserved.
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import paddle
 import paddle.nn as nn
 import paddle.nn.functional as F
@@ -8,6 +23,7 @@ import re
 from config.init import OPT
 from utils.util import build_norm_layer, spn_conv_init_weight, spn_conv_init_bias, spectral_norm, simam
 
+# 定义SPADE正则化模块
 class SPADE(nn.Layer):
     def __init__(self, config_text, norm_nc, label_nc):
         super(SPADE, self).__init__()
@@ -15,7 +31,6 @@ class SPADE(nn.Layer):
         parsed = re.search('spade(\D+)(\d)x\d', config_text)
         param_free_norm_type = str(parsed.group(1))
         ks = int(parsed.group(2))
-        # print(config_text, parsed, param_free_norm_type, ks)
 
         self.param_free_norm = build_norm_layer(param_free_norm_type)(norm_nc)
 
@@ -25,14 +40,12 @@ class SPADE(nn.Layer):
         pw = ks // 2
         self.mlp_shared = nn.Sequential(*[
             nn.Conv2D(label_nc, nhidden, ks, 1, pw),
-            # nn.ReLU(),
             nn.GELU(),
         ])
         self.mlp_gamma = nn.Conv2D(nhidden, norm_nc, ks, 1, pw)
         self.mlp_beta = nn.Conv2D(nhidden, norm_nc, ks, 1, pw)
 
     def forward(self, x, segmap):
-        # self.apply(weights_init)
         # Part 1. generate parameter-free normalized activations
         normalized = self.param_free_norm(x)
 
@@ -45,9 +58,9 @@ class SPADE(nn.Layer):
         # apply scale and bias
         out = normalized * (1 + gamma) + beta
 
-        # return out
         return simam(out)
 
+# 定义带SPADE的基本残差块
 class SPADEResnetBlock(nn.Layer):
     def __init__(self, fin, fout, opt):
         super(SPADEResnetBlock, self).__init__()
@@ -64,16 +77,13 @@ class SPADEResnetBlock(nn.Layer):
             self.spade_s = SPADE(spade_config_str, fin, opt.semantic_nc)
 
         # define act_conv layers
-        # SpectralNorm = build_norm_layer('spectral')
         self.act_conv_0 = nn.Sequential(*[
-            # nn.LeakyReLU(.2),
             nn.GELU(),
             spectral_norm(nn.Conv2D(fin, fmiddle, 3, 1, 1, 
                 weight_attr=spn_conv_init_weight,
                 bias_attr=spn_conv_init_bias)),
             ])
         self.act_conv_1 = nn.Sequential(*[
-            # nn.LeakyReLU(.2),
             nn.GELU(),
             spectral_norm(nn.Conv2D(fmiddle, fout, 3, 1, 1, 
                 weight_attr=spn_conv_init_weight,
@@ -87,14 +97,11 @@ class SPADEResnetBlock(nn.Layer):
 
 
     def forward(self, x, seg):
-        # self.apply(weights_init)
-
         x_s = self.shortcut(x, seg)
 
         dx = self.act_conv_0(self.spade_0(x, seg))
         dx = self.act_conv_1(self.spade_1(dx, seg))
 
-        # return dx + x_s
         return simam(dx + x_s)
 
     def shortcut(self, x, seg):
@@ -104,6 +111,7 @@ class SPADEResnetBlock(nn.Layer):
             x_s = x
         return x_s
 
+# 定义用于训练与推理的、带SPADE的生成器
 class SPADEGenerator(nn.Layer):
     def __init__(self, opt):
         super(SPADEGenerator, self).__init__()
@@ -138,14 +146,10 @@ class SPADEGenerator(nn.Layer):
         self.up = nn.Upsample(scale_factor=2)
 
     def forward(self, input, z=None):
-        # self.apply(weights_init)
-        # print(self.fc.parameters())
         seg = input
         if self.opt.use_vae:
             x = self.fc(z)
-            # print(x)
             x = paddle.reshape(x, [-1, 16 * self.opt.ngf, self.sh, self.sw])
-            # print(x)
         else:
             x = F.interpolate(seg, (self.sh, self.sw))
             x = self.fc(x)
