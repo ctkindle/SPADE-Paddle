@@ -13,9 +13,9 @@ class OPT():
         self.load_size=286
         self.lr=0.0001
         self.n_layers_D=4
-        self.ndf=1 # 64
+        self.ndf=64
         self.nef=16
-        self.ngf=1 # 64
+        self.ngf=64
         self.no_TTUR=False
         self.no_instance=False
         self.no_vgg_loss=True # False
