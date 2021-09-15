@@ -66,5 +66,6 @@ def predict(opt):
     predicted = ((predicted + 1.) / 2. * 255).astype('uint8')
     predicted = Image.fromarray(predicted)
     predicted.save(opt.predict_result)
+    print('预测完成，输出图片存储至：'+opt.predict_result)
 
 predict(opt)

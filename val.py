@@ -69,6 +69,7 @@ def infer(opt, epoch_num=1, restart=False, show_interval=1, save_interval=1):
             # 存储生成的图片
             if step % save_interval == 0:
                 save_pics([fake_img, inst, image], file_name=fname[0].replace('.png', ''), save_path=os.path.join(opt.output, 'pics'))
+                print('['+str(step)+']', fname[0].replace('.png', '')+'已存储至：'+os.path.join(opt.output, 'pics'))
                 
 
 infer(opt, epoch_num = 1, show_interval=400, restart=False)
