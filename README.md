@@ -2,29 +2,29 @@
 
 使用Paddle2.1复现带SPADE正则化的像素风格迁移网络。
 
-[toc]
-
-## 目录
-* [一、简介](#一、简介)
-* [二、复现效果](#二、复现效果)
-* [三、数据集](#三、数据集)
-* [四、环境依赖](#四、环境依赖)
-* [五、快速开始](#五、快速开始)
-	* [step1、clone](#step1、clone)
-	* [step2、训练](#step2、训练)
-	* [step3、验证](#step3、验证)
-	* [step4、预测](#step4、预测)
-* [六、代码结构与详细说明](#六、代码结构与详细说明)
-	* [1、代码结构](#1、代码结构)
-	* [2、参数说明](#2、参数说明)
-	* [3、训练流程](#3、训练流程)
-	* [4、验证流程](#4、验证流程)
-	* [5、预测流程](#5、预测流程)
-	* [6、使用预训练模型预测](#6、使用预训练模型预测)
-		* [step1、下载预训练模型](#step1、下载预训练模型)
-		* [step2、预训练模型安装](#step2、预训练模型安装)
-		* [step3、使用预训练模型预测](#step3、使用预训练模型预测)
-* [七、模型信息](#七、模型信息)
+- [SPADE-Paddle](#spade-paddle)
+  * [一、简介](#----)
+  * [二、复现效果](#------)
+  * [三、数据集](#-----)
+  * [四、环境依赖](#------)
+  * [五、快速开始](#------)
+    + [step1、clone](#step1-clone)
+    + [step2、训练](#step2---)
+    + [step3、验证](#step3---)
+    + [step4、预测](#step4---)
+  * [六、代码结构与详细说明](#-----------)
+    + [1、代码结构](#1-----)
+    + [2、参数说明](#2-----)
+    + [3、训练流程](#3-----)
+      - [单机训练](#----)
+      - [多机训练](#----)
+    + [4、验证流程](#4-----)
+    + [5、预测流程](#5-----)
+    + [6、使用预训练模型预测](#6----------)
+      - [step1、下载预训练模型](#step1--------)
+      - [step2、预训练模型安装](#step2--------)
+      - [step3、使用预训练模型预测](#step3----------)
+  * [七、模型信息](#------)
 
 ## 一、简介
 
@@ -250,7 +250,40 @@ python predict.py
 
 | **参数** | **默认值** | **说明** | **其他** |
 | - | - | - | - |
-|  |  |  |  |
+| aspect_ratio | 1.0 | 计算生成器潜变量大小时使用的图片宽高比例 |  |
+| batchSize | 1 | batch尺寸 |  |
+| beta1 | 0.0 | adam优化器超参 |  |
+| beta2 | 0.999 | adam优化器超参 |  |
+| contain_dontcare_label | True | 语义分割图是否包含未知类别 |  |
+| crop_size | 256 | 训练图片裁切尺寸 |  |
+| label_nc | 182 | 语义标签类别数 |  |
+| lambda_feat | 10.0 | 判别器各个尺度特征权重比例 | 相邻两层之间 |
+| load_size | 286 | 图片读取尺寸 |  |
+| lr | 0.0001 | 学习率 |  |
+| n_layers_D | 4 | 判别器深度 |  |
+| ndf | 64 | 判别器宽度 |  |
+| nef | 16 | VAE编码器宽度 |  |
+| ngf | 64 | 生成器宽度 |  |
+| no_TTUR | False | 生成器、判别器是否使用不同学习率 |  |
+| no_instance | False | 不适用实例分割标签 |  |
+| no_vgg_loss | False | 不适用 perceptual loss |  |
+| norm_D | 'spectralinstance' | 判别器正则化方式 |  |
+| norm_E | 'spectralinstance' | VAE正则化方式 |  |
+| norm_G | 'spectralspadesyncbatch3x3' | 生成器正则化方式 | 单卡使用'spectralspadebatch3x3' |
+| num_D | 2 | 判别器个数 |  |
+| num_upsampling_layers | 'normal' | 生成器上采样层数 |  |
+| output_nc | 3 | 输出通道数 | 3为rgb |
+| semantic_nc | 184 | 语义标签数 | 182个类别+1未知类别+1实例分割标签 |
+| use_vae | True | 使用VAE编码器 |  |
+| z_dim | 256 | 输入生成器的噪声维度 |  |
+| dataroot  |  'dataset/' | 数据集根目录 |  |
+| datasetdir  |  '' | 数据集目录 | 脚本训练使用 |
+| vggwpath  |  'vgg/vgg19pretrain.pdparams' | VGG预训练权重路径 |  |
+| output  |  'output/' | 输出模型权重存储路径 | checkpoints |
+| lastoutput  |  'output/' | 读取模型权重路径 | checkpoints |
+| predict_inst  |  'prediction/test.png' | 预测实例分割标签存放路径 |  |
+| predict_result  |  'prediction/result.jpg' | 预测结果图片存放路径 |  |
+
 
 
 ### 3、训练流程

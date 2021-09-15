@@ -35,8 +35,6 @@ def data_onehot_pro(instance, label, opt):
     nc = opt.label_nc + 1 if opt.contain_dontcare_label \
         else opt.label_nc
     shape[1] = nc
-    # one hot
-    # print(label.shape, label.dtype, nc)
     semantics = paddle.nn.functional.one_hot(label.astype('int64'). \
         reshape([opt.batchSize, opt.crop_size, opt.crop_size]), nc). \
         transpose((0, 3, 1, 2))
@@ -279,15 +277,6 @@ def constant_(x, value):
 
 def weights_init(m):
     classname = m.__class__.__name__
-    # if hasattr(m, 'weight') and classname.find('Conv') != -1:
-    #     normal_(m.weight, 0.0, 0.02)
-    # elif classname.find('BatchNorm') != -1:
-    #     normal_(m.weight, 1.0, 0.02)
-    #     constant_(m.bias, 0)
-    
-    # print('init', classname, hasattr(m, 'weight'))
-    # for name,value in vars(m).items():
-    #     print('*********%s=%s'%(name,value))
     if hasattr(m, 'weight') and classname.find('Conv') != -1 or classname.find('Linear') != -1:
         constant_(m.weight, 2e-2)
     if hasattr(m, 'bias') and classname.find('Conv') != -1:
@@ -295,7 +284,5 @@ def weights_init(m):
             constant_(m.bias, 0)
 
 # 当使用谱归一化时，手动设置卷积层的初始值（由于参数名称的改变，weights_init无法正常工作）
-# spn_conv_init_weight = nn.initializer.Constant(value=2e-2)
-# spn_conv_init_bias = nn.initializer.Constant(value=.0)
 spn_conv_init_weight = None
 spn_conv_init_bias = None
